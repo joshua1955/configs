@@ -1,0 +1,165 @@
+{
+  "log": {
+    "access": "none",
+    "dnsLog": true,
+    "error": "",
+    "loglevel": "warning",
+    "maskAddress": ""
+  },
+  "api": {
+    "tag": "api",
+    "services": [
+      "HandlerService",
+      "LoggerService",
+      "StatsService"
+    ]
+  },
+  "inbounds": [
+    {
+      "tag": "api",
+      "listen": "127.0.0.1",
+      "port": 62789,
+      "protocol": "dokodemo-door",
+      "settings": {
+        "address": "127.0.0.1"
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "direct",
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "AsIs",
+        "redirect": "",
+        "noises": []
+      }
+    },
+    {
+      "tag": "blocked",
+      "protocol": "blackhole",
+      "settings": {}
+    },
+    {
+      "tag": "warp",
+      "protocol": "wireguard",
+      "settings": {
+        "mtu": 1420,
+        "secretKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "address": [
+          "172.16.0.2/32",
+          "2606:4700:110:8e3d:9970:d8c0:1146:8ed0/128"
+        ],
+        "workers": 2,
+        "domainStrategy": "ForceIP",
+        "reserved": [
+          134,
+          232,
+          111
+        ],
+        "peers": [
+          {
+            "publicKey": "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+            "allowedIPs": [
+              "0.0.0.0/0",
+              "::/0"
+            ],
+            "endpoint": "engage.cloudflareclient.com:2408",
+            "keepAlive": 0
+          }
+        ],
+        "noKernelTun": false
+      }
+    }
+  ],
+  "policy": {
+    "levels": {
+      "0": {
+        "statsUserDownlink": true,
+        "statsUserUplink": true
+      }
+    },
+    "system": {
+      "statsInboundDownlink": true,
+      "statsInboundUplink": true,
+      "statsOutboundDownlink": true,
+      "statsOutboundUplink": true
+    }
+  },
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "domain": [
+#route to russian sites via warp
+          "geosite:category-gov-ru",
+#route to google ai sites via warp added from https://github.com/itdoginfo/allow-domains/blob/main/Services/google_ai.lst 06.09.25
+          "deepmind.com",
+          "deepmind.google",
+          "geller-pa.googleapis.com",
+          "generativelanguage.googleapis.com",
+          "proactivebackend-pa.googleapis.com",
+          "ai.google.dev",
+          "generativeai.google",
+          "makersuite.google.com",
+          "aistudio.google.com",
+          "bard.google.com",
+          "gemini.google",
+          "gemini.google.com",
+          "notebooklm.google.com",
+          "clients6.google.com",
+          "notebooklm.google",
+          "jules.google",
+          "jules.google.com",
+          "labs.google",
+          "aisandbox-pa.googleapis.com",
+          "stitch.withgoogle.com"
+        ],
+        "outboundTag": "warp"
+      },
+      {
+        "type": "field",
+        "inboundTag": [
+          "api"
+        ],
+        "outboundTag": "api"
+      },
+      {
+        "type": "field",
+        "outboundTag": "blocked",
+        "ip": [
+          "geoip:private"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "blocked",
+        "protocol": [
+          "bittorrent"
+        ]
+      },
+      {
+        "type": "field",
+#block ads and spy
+        "domain": [
+          "geosite:category-ads-all",
+          "geosite:win-spy",
+          "ext:geosite_RU.dat:category-ads-all"
+        ],
+        "outboundTag": "blocked"
+      }
+    ]
+  },
+  "stats": {},
+  "metrics": {
+    "tag": "metrics_out",
+    "listen": "127.0.0.1:11111"
+  },
+  "dns": {
+    "servers": [],
+    "queryStrategy": "UseIP",
+    "tag": "dns_inbound"
+  },
+  "fakedns": null
+}
