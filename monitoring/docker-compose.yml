@@ -1,0 +1,92 @@
+networks:
+  proxy:
+    name: proxy
+    external: true
+  monitoring:
+    name: monitoring
+    internal: true
+
+volumes:
+  grafana_data:
+  prometheus_data:
+  loki_data:
+
+services:
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    networks:
+      monitoring:
+    expose:
+      - 9100
+    command:
+      - --path.procfs=/host/proc
+      - --path.rootfs=/rootfs
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      monitoring:
+      proxy:
+    expose:
+      - 9090
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      proxy:
+      monitoring:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.teplyshko.ru`)"
+      - "traefik.http.routers.grafana.entrypoints=http"
+      - "traefik.http.middlewares.grafana-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.grafana.middlewares=grafana-https-redirect"
+      - "traefik.http.routers.grafana-secure.rule=Host(`grafana.teplyshko.ru`)"
+      - "traefik.http.routers.grafana-secure.entrypoints=https"
+      - "traefik.http.routers.grafana-secure.tls=true"
+      - "traefik.http.routers.grafana-secure.service=grafana"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.middlewares.grafana-auth.basicauth.users=admin:$$2y$$05$$I7b1YW.IyopJlblVj/x0sO7.eT6sxDHhfmxscLV71jYoJ2Fj0hsim"
+      - "traefik.http.routers.grafana-secure.middlewares=grafana-auth"
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    restart: unless-stopped
+    networks:
+      monitoring:
+    volumes:
+      - loki_data:/loki
+      - ./loki-config.yml:/mnt/config/loki-config.yml
+    command: -config.file=/mnt/config/loki-config.yml -config.expand-env=true
+    expose:
+      - 3100
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: unless-stopped
+    networks:
+      monitoring:
+    volumes:
+      - /var/lib/docker/containers:/host/containers
+      - ./promtail-config.yaml:/mnt/config/promtail-config.yaml
+    command: -config.file /mnt/config/promtail-config.yaml

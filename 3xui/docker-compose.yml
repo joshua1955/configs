@@ -1,0 +1,28 @@
+services:
+  3xui_bak:
+    image: ghcr.io/mhsanaei/3x-ui:latest
+    container_name: 3xui_app
+    hostname: vpn_server
+    ports:
+#allow connections to internal service from clients
+      - "10501:10501/tcp"
+#allow only local connections to web admin
+      - "127.0.0.1:2053:2053/tcp"
+    volumes:
+#      - 3x_data:/etc/x-ui
+#      - 3x_data:/root/cert
+      - $PWD/db/:/etc/x-ui/
+      - $PWD/cert/:/root/cert/
+    environment:
+      XRAY_VMESS_AEAD_FORCED: "false"
+      XUI_ENABLE_FAIL2BAN: "true"
+    tty: true
+    network_mode: bridge
+    restart: unless-stopped
+
+networks:
+  3x_default:
+    external: true
+    name: "3xui"
+#volumes:
+#  3x_data:
