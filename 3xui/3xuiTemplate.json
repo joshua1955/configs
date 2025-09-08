@@ -1,9 +1,9 @@
 {
   "log": {
-    "access": "none",
+    "access": "./access.log",
     "dnsLog": true,
-    "error": "",
-    "loglevel": "warning",
+    "error": "./error.log",
+    "loglevel": "debug",
     "maskAddress": ""
   },
   "api": {
@@ -45,17 +45,17 @@
       "protocol": "wireguard",
       "settings": {
         "mtu": 1420,
-        "secretKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "secretKey": "xxx",
         "address": [
           "172.16.0.2/32",
-          "2606:4700:110:8e3d:9970:d8c0:1146:8ed0/128"
+          "2606:4700:110:8af0:919a:b326:2e24:1f82/128"
         ],
         "workers": 2,
         "domainStrategy": "ForceIP",
         "reserved": [
-          134,
-          232,
-          111
+          137,
+          254,
+          186
         ],
         "peers": [
           {
@@ -91,10 +91,14 @@
     "rules": [
       {
         "type": "field",
+        "inboundTag": [
+          "api"
+        ],
+        "outboundTag": "api"
+      },
+      {
+        "type": "field",
         "domain": [
-#route to russian sites via warp
-          "geosite:category-gov-ru",
-#route to google ai sites via warp added from https://github.com/itdoginfo/allow-domains/blob/main/Services/google_ai.lst 06.09.25
           "deepmind.com",
           "deepmind.google",
           "geller-pa.googleapis.com",
@@ -120,10 +124,12 @@
       },
       {
         "type": "field",
-        "inboundTag": [
-          "api"
+        "domain": [
+          "geosite:category-ads-all",
+          "geosite:win-spy",
+          "ext:geosite_RU.dat:category-ads-all"
         ],
-        "outboundTag": "api"
+        "outboundTag": "blocked"
       },
       {
         "type": "field",
@@ -138,16 +144,6 @@
         "protocol": [
           "bittorrent"
         ]
-      },
-      {
-        "type": "field",
-#block ads and spy
-        "domain": [
-          "geosite:category-ads-all",
-          "geosite:win-spy",
-          "ext:geosite_RU.dat:category-ads-all"
-        ],
-        "outboundTag": "blocked"
       }
     ]
   },

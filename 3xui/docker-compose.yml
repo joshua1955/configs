@@ -8,6 +8,8 @@ services:
       - "10501:10501/tcp"
 #allow only local connections to web admin
       - "127.0.0.1:2053:2053/tcp"
+#for wireguard warp outbound because of warning
+#WARNING - XRAY: proxy/wireguard: Using gVisor TUN. Kernel TUN is not supported on your OS, or your permission is insufficient. 
     volumes:
 #      - 3x_data:/etc/x-ui
 #      - 3x_data:/root/cert

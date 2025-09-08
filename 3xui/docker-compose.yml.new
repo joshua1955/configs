@@ -1,0 +1,59 @@
+services:
+  3x-ui:
+#for wireguard warp outbound because of warning
+    privileged: true
+    command:
+      - "./x-ui"
+    container_name: "3x-ui"
+    entrypoint:
+      - "/app/DockerEntrypoint.sh"
+    environment:
+      - "XRAY_VMESS_AEAD_FORCED=false"
+      - "X_UI_ENABLE_FAIL2BAN=true"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      - "TZ=Asia/Krasnoyarsk"
+      - "XUI_ENABLE_FAIL2BAN=true"
+
+    hostname: "vpn_serverMain"
+    image: "ghcr.io/mhsanaei/3x-ui:latest"
+    ipc: "private"
+    labels:
+      com.docker.compose.config-hash: "7f100ee828e256afd06a6e4d9d547f686347814e8156a250b22913148d49b7be"
+      com.docker.compose.container-number: "1"
+      com.docker.compose.oneoff: "False"
+      com.docker.compose.project: "3x"
+      com.docker.compose.project.config_files: "docker-compose.yml"
+      com.docker.compose.project.working_dir: "/root/docker/3x"
+      com.docker.compose.service: "3x-ui"
+      com.docker.compose.version: "1.29.2"
+      org.opencontainers.image.created: "2025-07-06T19:00:06.146Z"
+      org.opencontainers.image.description: "Xray panel supporting multi-protocol multi-user expire day\
+        \ & traffic & IP limit (Vmess & Vless & Trojan &  ShadowSocks & Wireguard)"
+      org.opencontainers.image.licenses: "GPL-3.0"
+      org.opencontainers.image.revision: "b7164805f8382226b0360f42b1be7f5ece307db4"
+      org.opencontainers.image.source: "https://github.com/MHSanaei/3x-ui"
+      org.opencontainers.image.title: "3x-ui"
+      org.opencontainers.image.url: "https://github.com/MHSanaei/3x-ui"
+      org.opencontainers.image.version: "2.6.2"
+    logging:
+      driver: "json-file"
+      options: {}
+    network_mode: "bridge"
+    ports:
+#allow connections to internal service from clients
+      - "10500:10500/tcp"
+      - "51820:51820"
+      - "2408:2408"
+      - "127.0.0.1:2053:2053/tcp"
+    restart: "unless-stopped"
+    tty: true
+    volumes:
+      - "/root/docker/3x/cert:/root/cert"
+      - "/root/docker/3x/db:/etc/x-ui"
+      - $PWD/:/app/
+    working_dir: "/app"
+
+networks:
+  3x_default:
+    external: true
+    name: "3x_default"
